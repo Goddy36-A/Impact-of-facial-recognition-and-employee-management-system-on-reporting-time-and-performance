@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Database files
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log

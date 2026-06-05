@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FaceForce Pro — Enterprise Employee Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Geist+Mono:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+</head>
+<body>
+<div id="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.06)"/>
+          <circle cx="16" cy="12" r="5" stroke="#e2ff00" stroke-width="1.5"/>
+          <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#e2ff00" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="16" cy="12" r="2.5" fill="#e2ff00"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">FaceForce</span>
+        <span class="brand-badge">PRO</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">CORE</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <span class="nav-icon">◈</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item" data-page="recognition" onclick="navigate('recognition')">
+        <span class="nav-icon">◎</span><span>Face Scan</span>
+        <span class="nav-live">LIVE</span>
+      </a>
+      <a class="nav-item" data-page="register" onclick="navigate('register')">
+        <span class="nav-icon">⊕</span><span>Register Face</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-section-label">WORKFORCE</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" data-page="employees" onclick="navigate('employees')">
+        <span class="nav-icon">▤</span><span>Employees</span>
+        <span class="nav-count" id="navEmpCount">—</span>
+      </a>
+      <a class="nav-item" data-page="departments" onclick="navigate('departments')">
+        <span class="nav-icon">◫</span><span>Departments</span>
+      </a>
+      <a class="nav-item" data-page="shifts" onclick="navigate('shifts')">
+        <span class="nav-icon">⧖</span><span>Shifts</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-section-label">OPERATIONS</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" data-page="attendance" onclick="navigate('attendance')">
+        <span class="nav-icon">▦</span><span>Attendance</span>
+      </a>
+      <a class="nav-item" data-page="payroll" onclick="navigate('payroll')">
+        <span class="nav-icon">◉</span><span>Payroll</span>
+      </a>
+      <a class="nav-item" data-page="reports" onclick="navigate('reports')">
+        <span class="nav-icon">◧</span><span>Reports</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name">Admin</div>
+          <div class="user-role">System Administrator</div>
+        </div>
+      </div>
+      <div class="sidebar-clock" id="sidebarClock">--:--:--</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainArea">
+    <div id="page-content"></div>
+  </main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL CONTAINER -->
+<div class="modal-backdrop" id="modalBackdrop" style="display:none">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/ui.js"></script>
+<script src="/static/js/pages/dashboard.js"></script>
+<script src="/static/js/pages/recognition.js"></script>
+<script src="/static/js/pages/register.js"></script>
+<script src="/static/js/pages/employees.js"></script>
+<script src="/static/js/pages/departments.js"></script>
+<script src="/static/js/pages/shifts.js"></script>
+<script src="/static/js/pages/attendance.js"></script>
+<script src="/static/js/pages/payroll.js"></script>
+<script src="/static/js/pages/reports.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
