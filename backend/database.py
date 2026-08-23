@@ -3,8 +3,9 @@ FaceForce Pro — Database Layer
 SQLite with full schema: employees, departments, attendance, payroll, shifts, users, face_data
 """
 
-import sqlite3, os, json, hashlib
+import sqlite3, os, json
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'faceforce.db')
 
@@ -246,9 +247,18 @@ def _seed_demo_data(conn):
                 """, (emp_id, att_date, check_in, check_out,
                       round(85 + random.random() * 14, 1), 'present', round(overtime, 2)))
 
-    # Admin user
-    pw = hashlib.sha256('admin123'.encode()).hexdigest()
-    cur.execute("INSERT INTO users (username,password,role) VALUES (?,?,?)", ('admin', pw, 'admin'))
+    # Admin user — password is never hardcoded. Set INITIAL_ADMIN_PASSWORD to choose
+    # it yourself; otherwise a random one is generated and printed once, here, so it
+    # is never committed to source control or written into documentation.
+    import secrets
+    admin_username = os.environ.get('INITIAL_ADMIN_USERNAME', 'admin')
+    admin_password = os.environ.get('INITIAL_ADMIN_PASSWORD')
+    generated = admin_password is None
+    if generated:
+        admin_password = secrets.token_urlsafe(12)
+    pw_hash = generate_password_hash(admin_password)
+    cur.execute("INSERT INTO users (username,password,role) VALUES (?,?,?)",
+                (admin_username, pw_hash, 'admin'))
 
     # Update dept headcounts
     cur.execute("""
@@ -259,3 +269,12 @@ def _seed_demo_data(conn):
 
     conn.commit()
     print("✅ Demo data seeded (18 employees, 7 days attendance)")
+    if generated:
+        print("=" * 64)
+        print(f"Bootstrap admin account created — username: {admin_username}")
+        print(f"Generated temporary password: {admin_password}")
+        print("Log in and change this password immediately. It will not be shown again.")
+        print("=" * 64)
+    else:
+        print(f"Bootstrap admin account created — username: {admin_username} "
+              f"(password set from INITIAL_ADMIN_PASSWORD)")

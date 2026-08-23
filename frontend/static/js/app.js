@@ -56,7 +56,12 @@ function init() {
     if(e.key==='Escape') closeModal();
   });
 
-  console.log('%cFaceForce Pro v2.0 — Loaded', 'color:#e2ff00;font-weight:bold;font-size:14px');
+  console.log('%cFaceForce Pro — Loaded', 'color:#e2ff00;font-weight:bold;font-size:14px');
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// NOTE: init() is deliberately NOT auto-run on DOMContentLoaded here.
+// auth.js owns that decision - it checks session status first and only calls
+// init() once a valid, authenticated session is confirmed (either an existing
+// one on page load, or a fresh one right after a successful login). Auto-running
+// init() unconditionally here would let the SPA start fetching protected data
+// and rendering pages before the user has actually logged in.

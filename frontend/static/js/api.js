@@ -7,10 +7,19 @@ const API = {
     if (params) url += '?' + new URLSearchParams(params);
     const opts = {
       method,
+      credentials: 'include', // send the session cookie set by /api/auth/login
       headers: { 'Content-Type': 'application/json' }
     };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(url, opts);
+
+    if (res.status === 401 && path !== '/auth/me' && path !== '/auth/login') {
+      // Session expired or was never established - bounce to the login screen
+      // rather than letting every page independently handle this.
+      if (typeof window.showLoginScreen === 'function') window.showLoginScreen();
+      throw new Error('Session expired. Please log in again.');
+    }
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     return data;
@@ -22,6 +31,13 @@ const API = {
   delete: (path)          => API._req('DELETE',  path),
 
   // Convenience
+  auth: {
+    login:  (username, password) => API.post('/auth/login', {username, password}),
+    logout: ()   => API.post('/auth/logout'),
+    me:     ()   => API.get('/auth/me'),
+    changePassword: (current_password, new_password) =>
+      API.post('/auth/change-password', {current_password, new_password}),
+  },
   employees: {
     list:    (p) => API.get('/employees/', p),
     get:     (id)=> API.get(`/employees/${id}`),

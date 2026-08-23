@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+cd "$(dirname "$0")"
+
 echo ""
 echo "  ███████╗ █████╗  ██████╗███████╗███████╗ ██████╗ ██████╗  ██████╗███████╗"
 echo "  ██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝"
@@ -7,22 +10,36 @@ echo "  ██╔══╝  ██╔══██║██║     ██╔═�
 echo "  ██║     ██║  ██║╚██████╗███████╗██║     ╚██████╔╝██║  ██║╚██████╗███████╗"
 echo "  ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝"
 echo ""
-echo "  FaceForce Pro — Enterprise Employee Intelligence System"
-echo "  Version 2.0.0"
+echo "  FaceForce — Facial Recognition & Employee Management System"
 echo ""
 
-# Install deps
-echo "  [1/3] Checking dependencies..."
-pip install flask flask-cors pillow numpy --break-system-packages -q
+if [ ! -d "venv" ]; then
+  echo "  [1/4] Creating virtual environment..."
+  python3 -m venv venv
+fi
+source venv/bin/activate
 
-# Start server
-echo "  [2/3] Initializing database..."
-echo "  [3/3] Starting server..."
+echo "  [2/4] Installing dependencies..."
+pip install -r requirements.txt -q
+
+if [ ! -f ".env" ]; then
+  echo "  [3/4] No .env found - copying .env.example (edit it before deploying anywhere real)"
+  cp .env.example .env
+else
+  echo "  [3/4] .env found"
+fi
+
+echo "  [4/4] Starting server..."
 echo ""
-echo "  ✅ Running at http://localhost:5000"
-echo "  ✅ Default login: admin / admin123"
+echo "  Open http://localhost:5000"
+echo "  On first run, a bootstrap admin account is created automatically -"
+echo "  watch the output below for its username and one-time generated password."
 echo "  Press Ctrl+C to stop"
 echo ""
 
-cd "$(dirname "$0")/backend"
+set -a
+source .env
+set +a
+
+cd backend
 python3 app.py

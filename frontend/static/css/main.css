@@ -216,8 +216,21 @@ html, body {
   flex-shrink: 0;
 }
 
+.user-info { flex: 1; min-width: 0; }
 .user-name { font-size: 12px; font-weight: 700; }
 .user-role { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+
+.sidebar-user-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.sidebar-user-btn:hover { background: var(--surface2); color: var(--text); }
 
 .sidebar-clock {
   text-align: center;
@@ -843,16 +856,184 @@ html, body {
   .stat-grid { grid-template-columns: repeat(2,1fr); }
 }
 
+/* Tablet and below: sidebar becomes an off-canvas drawer instead of a
+   permanently-visible icon rail. The old icon-only collapse still ate real
+   width on phone-sized screens and offered no labels, which is awkward to
+   use with a thumb. */
 @media (max-width: 900px) {
-  :root { --sidebar-w: 60px; }
-  .sidebar-section-label,
-  .nav-item span:nth-child(2),
-  .nav-live, .nav-count,
-  .brand-text, .user-info, .sidebar-clock { display: none; }
-  .brand-mark { margin: auto; }
-  .sidebar-brand { justify-content: center; padding: 16px 8px; }
-  .nav-item { justify-content: center; }
-  .sidebar-user { justify-content: center; }
-  .page-topbar { padding: 16px 16px 0; }
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--obsidian2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hamburger-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .mobile-topbar-brand {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  #app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: 260px;
+    max-width: 82vw;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.sidebar-open { transform: translateX(0); }
+
+  .sidebar-close-btn {
+    display: block;
+    position: absolute;
+    top: 14px; right: 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  /* Restore full labels/text inside the drawer - it's an overlay now, not a
+     permanent rail, so there's no reason to hide them like the old
+     icon-only collapse did. */
+  .sidebar-section-label { display: block; }
+  .nav-item span:nth-child(2) { display: inline; }
+  .nav-live, .nav-count { display: inline-block; }
+  .brand-text { display: flex; }
+  .user-info { display: block; }
+  .sidebar-clock { display: block; }
+  .sidebar-brand { justify-content: flex-start; padding: 20px 18px; }
+  .nav-item { justify-content: flex-start; min-height: 46px; }
+  .sidebar-user { justify-content: flex-start; }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 55;
+  }
+  .sidebar-backdrop.sidebar-backdrop-visible { display: block; }
+
+  .main { grid-column: 1; }
+
+  .page-topbar { padding: 16px 16px 0; flex-wrap: wrap; gap: 10px; }
   .page-body { padding: 0 16px 16px; }
+  .page-actions { flex-wrap: wrap; }
+
+  .toolbar { flex-wrap: wrap; }
+  .search-box { max-width: none; flex-basis: 100%; }
+
+  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+
+  .modal-box { width: 94vw; }
 }
+
+@media (max-width: 480px) {
+  .stat-grid, .report-kpi-row { grid-template-columns: repeat(2,1fr); }
+  .page-title { font-size: 22px; }
+  .btn { padding: 10px 14px; }
+}
+
+/* Larger touch targets on touch devices, regardless of screen width - a
+   laptop with a touchscreen benefits from this just as much as a phone. */
+@media (pointer: coarse) {
+  .nav-item, .btn, .form-control, select.form-control { min-height: 44px; }
+}
+
+/* ─── LOGIN SCREEN ────────────────────────────────────────── */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--obsidian);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 12px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+
+.login-error {
+  background: rgba(255,92,107,0.1);
+  border: 1px solid rgba(255,92,107,0.3);
+  color: var(--coral);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.login-submit { width: 100%; justify-content: center; margin-top: 6px; }
+
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  opacity: 0.6;
+  padding: 4px;
+}
+.pw-toggle:hover { opacity: 1; }
+
+.sidebar-close-btn { display: none; }
+.mobile-topbar { display: none; }
+.sidebar-backdrop { display: none; }

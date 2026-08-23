@@ -1,22 +1,75 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from database import get_db
-import hashlib
+from werkzeug.security import check_password_hash, generate_password_hash
+from auth_utils import login_required
 
 auth_bp = Blueprint('auth', __name__)
 
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    db = get_db()
     data = request.json or {}
-    pw = hashlib.sha256(data.get('password','').encode()).hexdigest()
-    user = db.execute("SELECT * FROM users WHERE username=? AND password=?",
-                      (data.get('username',''), pw)).fetchone()
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
     db.close()
-    if user:
-        return jsonify({'success': True, 'role': user['role'], 'username': user['username'],
-                        'token': f'ff-token-{user["id"]}'})
-    return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+
+    # Same response whether the username exists or not, so this endpoint doesn't
+    # leak which usernames are valid.
+    if not user or not check_password_hash(user['password'], password):
+        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+
+    session.clear()
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    session['role'] = user['role']
+    session.permanent = True
+
+    db = get_db()
+    db.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user['id'],))
+    db.commit()
+    db.close()
+
+    return jsonify({'success': True, 'role': user['role'], 'username': user['username']})
+
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
 
 @auth_bp.route('/me', methods=['GET'])
 def me():
-    return jsonify({'username': 'admin', 'role': 'admin'})
+    if not session.get('user_id'):
+        return jsonify({'authenticated': False}), 401
+    return jsonify({
+        'authenticated': True,
+        'username': session.get('username'),
+        'role': session.get('role'),
+    })
+
+
+@auth_bp.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    data = request.json or {}
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+
+    if len(new_password) < 8:
+        return jsonify({'error': 'New password must be at least 8 characters'}), 400
+
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
+    if not user or not check_password_hash(user['password'], current_password):
+        db.close()
+        return jsonify({'error': 'Current password is incorrect'}), 400
+
+    db.execute("UPDATE users SET password=? WHERE id=?",
+               (generate_password_hash(new_password), session['user_id']))
+    db.commit()
+    db.close()
+    return jsonify({'success': True})
