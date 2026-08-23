@@ -5,7 +5,7 @@ async function renderDepartments() {
       <div class="page-actions"><button class="btn btn-primary" onclick="openDeptModal()">+ Add Department</button></div>
     </div>
     <div class="page-body">
-      <div id="deptGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">${loadingRows(1,3).replace(/<\/tr>/g,'')}</div>
+      <div id="deptGrid" class="dept-grid">${loadingRows(1,3).replace(/<\/tr>/g,'')}</div>
     </div>`;
   loadDeptGrid();
 }
@@ -75,7 +75,8 @@ async function saveDept(id) {
 }
 
 async function deleteDept(id, name) {
-  if(!confirm(`Delete ${name}?`)) return;
-  try { await API.departments.delete(id); toast('Deleted','info'); loadDeptGrid(); }
+  const ok = await confirmDialog(`Delete <strong>${name}</strong>? This cannot be undone.`, true);
+  if(!ok) return;
+  try { await API.departments.delete(id); toast('Department deleted','info'); loadDeptGrid(); }
   catch(e) { toast('Error: '+e.message,'error'); }
 }

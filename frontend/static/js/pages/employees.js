@@ -16,8 +16,8 @@ async function renderEmployees() {
     <div class="page-body">
       <div class="toolbar">
         <div class="search-box">
-          <span class="search-icon">?</span>
-          <input type="text" id="empSearch" placeholder="Search name, ID, email..." oninput="searchEmployees()"/>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input type="search" id="empSearch" placeholder="Search name, ID, email..." oninput="searchEmployees()" aria-label="Search employees"/>
         </div>
         <select class="form-control" id="empDeptFilter" style="width:180px" onchange="searchEmployees()">
           <option value="">All Departments</option>
@@ -32,8 +32,8 @@ async function renderEmployees() {
       </div>
 
       <div class="card">
-        <div style="overflow-x:auto">
-          <table class="data-table">
+        <div class="table-scroll">
+          <table class="data-table" role="grid" aria-label="Employees list">
             <thead>
               <tr>
                 <th>Employee</th>
@@ -288,12 +288,13 @@ async function saveEmployee(id) {
 }
 
 async function deleteEmployee(id, name) {
-  if(!confirm(`Delete ${name}? This also removes their face data.`)) return;
+  const ok = await confirmDialog(`Delete <strong>${name}</strong>? This also removes their face data and cannot be undone.`, true);
+  if(!ok) return;
   try {
     await API.employees.delete(id);
-    toast(`${name} deleted`,'info');
+    toast(`${name} deleted`, 'info');
     loadEmployeeTable(_empPage);
-  } catch(e) { toast('Delete failed: '+e.message,'error'); }
+  } catch(e) { toast('Delete failed: '+e.message, 'error'); }
 }
 
 function exportEmployees() { window.open('/api/attendance/export?date='+new Date().toISOString().split('T')[0]); }

@@ -5,7 +5,7 @@ async function renderShifts() {
       <div class="page-actions"><button class="btn btn-primary" onclick="openShiftModal()">+ Add Shift</button></div>
     </div>
     <div class="page-body">
-      <div id="shiftGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px"></div>
+      <div id="shiftGrid" class="grid-2"></div>
     </div>`;
   loadShiftGrid();
 }

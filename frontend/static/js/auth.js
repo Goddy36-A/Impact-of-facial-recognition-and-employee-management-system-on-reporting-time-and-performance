@@ -60,6 +60,9 @@ function toggleSidebar(open) {
   if (!sidebar) return;
   sidebar.classList.toggle('sidebar-open', open);
   if (backdrop) backdrop.classList.toggle('sidebar-backdrop-visible', open);
+  // Keep hamburger aria-expanded in sync
+  const hbtn = document.getElementById('hamburgerBtn');
+  if (hbtn) hbtn.setAttribute('aria-expanded', String(!!open));
 }
 
 function openAccountMenu(event) {

@@ -16,7 +16,7 @@ async function renderPayroll() {
       </div>
     </div>
     <div class="page-body">
-      <div id="payrollSummaryCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      <div id="payrollSummaryCards" class="stat-grid">
         ${[1,2,3,4].map(()=>`<div class="stat-card"><div class="skeleton" style="height:70px"></div></div>`).join('')}
       </div>
 
@@ -35,8 +35,8 @@ async function renderPayroll() {
       </div>
 
       <div class="card">
-        <div style="overflow-x:auto">
-          <table class="data-table">
+        <div class="table-scroll">
+          <table class="data-table" role="grid" aria-label="Payroll records">
             <thead>
               <tr>
                 <th>Employee</th>

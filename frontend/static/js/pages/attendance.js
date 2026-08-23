@@ -40,8 +40,8 @@ async function renderAttendance() {
       </div>
 
       <div class="card">
-        <div style="overflow-x:auto">
-          <table class="data-table">
+        <div class="table-scroll">
+          <table class="data-table" role="grid" aria-label="Attendance records">
             <thead>
               <tr>
                 <th>Employee</th>
@@ -174,8 +174,9 @@ async function quickCheckout(recordId) {
 }
 
 async function deleteAtt(recordId) {
-  if(!confirm('Delete this attendance record?')) return;
-  try { await API.attendance.delete(recordId); toast('Deleted','info'); loadAttTable(_attPage); loadAttStats(); }
+  const ok = await confirmDialog('Delete this attendance record? This action cannot be undone.', true);
+  if(!ok) return;
+  try { await API.attendance.delete(recordId); toast('Record deleted','info'); loadAttTable(_attPage); loadAttStats(); }
   catch(e) { toast('Error: '+e.message,'error'); }
 }
 

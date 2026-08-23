@@ -1,5 +1,5 @@
 // Register Face Page
-const REG_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+const REG_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/';
 let _regStream = null, _regModelsLoaded = false;
 let _regCaptures = [], _regImages = [];
 const REG_REQUIRED = 5;
@@ -15,14 +15,14 @@ function renderRegister() {
         <span class="tag tag-muted" id="regModelBadge">Loading models...</span>
       </div>
     </div>
-    <div class="page-body" style="display:grid;grid-template-columns:1fr 340px;gap:20px">
+    <div class="page-body rec-grid">
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="card">
           <div class="card-header">
             <span class="card-title">Camera Capture</span>
-            <span class="tag tag-muted" id="regFaceStatus">No camera</span>
+            <span class="tag tag-muted" id="regFaceStatus" role="status">No camera</span>
           </div>
-          <div class="camera-viewport" id="regViewport" style="min-height:380px;display:flex;align-items:center;justify-content:center">
+          <div class="camera-viewport cam-h-380" id="regViewport">
             <div id="regPlaceholder" style="text-align:center;color:var(--text-3)">
               <div style="font-size:56px;opacity:0.12;margin-bottom:12px">o</div>
               <p style="font-family:var(--font-mono);font-size:12px">Select employee, then start camera</p>
@@ -45,11 +45,11 @@ function renderRegister() {
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Capture Guidelines</span></div>
-          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            ${[['Front-facing','Look directly at camera'],['Left angle','Turn head slightly left'],['Right angle','Turn head slightly right'],['Chin down','Tilt slightly down'],['Chin up','Tilt slightly up']].map(([t,d])=>`
+          <div class="card-body guides-grid">
+            ${[['◈ Front','Look directly at camera'],['◁ Left','Turn head slightly left'],['▷ Right','Turn head slightly right'],['▽ Down','Tilt chin slightly down'],['△ Up','Tilt chin slightly up']].map(([t,d])=>`
               <div style="display:flex;gap:8px;padding:8px;background:var(--obsidian3);border-radius:8px;align-items:flex-start">
-                <span style="color:var(--citron)">o</span>
-                <div><div style="font-size:12px;font-weight:600">${t}</div><div style="font-size:11px;color:var(--text-2)">${d}</div></div>
+                <span style="color:var(--citron);flex-shrink:0;font-size:13px;font-weight:700;margin-top:1px">${t.split(' ')[0]}</span>
+                <div><div style="font-size:12px;font-weight:600">${t.split(' ').slice(1).join(' ')}</div><div style="font-size:11px;color:var(--text-2)">${d}</div></div>
               </div>`).join('')}
           </div>
         </div>

@@ -17,7 +17,7 @@ async function renderDashboard() {
       <div class="stat-grid" id="dashStats">
         ${[1,2,3,4].map(()=>`<div class="stat-card"><div class="skeleton" style="height:80px"></div></div>`).join('')}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="grid-2">
         <div class="card" id="weeklyChart">
           <div class="card-header"><span class="card-title">Weekly Attendance</span><span class="tag tag-mint" id="weekRate">—</span></div>
           <div class="card-body" id="weeklyBody"><div class="skeleton" style="height:100px"></div></div>
@@ -27,19 +27,19 @@ async function renderDashboard() {
           <div class="card-body" id="deptBody"><div class="skeleton" style="height:100px"></div></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="grid-2">
         <div class="card">
           <div class="card-header">
             <span class="card-title">Today's Check-ins</span>
-            <span class="tag tag-mint" id="liveTag" style="animation:blink 1.5s infinite">● LIVE</span>
+            <span class="tag tag-mint" id="liveTag" style="animation:blink 1.5s infinite" aria-live="polite">● LIVE</span>
           </div>
-          <div id="checkinList" style="max-height:300px;overflow-y:auto">
+          <div id="checkinList" style="max-height:300px;overflow-y:auto" role="list" aria-label="Today's check-ins">
             <div class="empty-state"><div class="empty-icon">◎</div>Loading…</div>
           </div>
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Face Recognition System</span></div>
-          <div class="card-body" id="faceStatus">
+          <div class="card-body" id="faceStatus" aria-live="polite">
             <div class="skeleton" style="height:120px"></div>
           </div>
         </div>

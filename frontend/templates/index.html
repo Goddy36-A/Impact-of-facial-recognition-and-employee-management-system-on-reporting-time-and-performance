@@ -10,6 +10,9 @@
 </head>
 <body>
 
+<!-- SKIP TO CONTENT (Accessibility) -->
+<a href="#mainArea" class="skip-link">Skip to main content</a>
+
 <!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen" style="display:none">
   <form class="login-card" id="loginForm" onsubmit="return handleLogin(event)">
@@ -33,13 +36,13 @@
     <div id="loginError" class="login-error" style="display:none"></div>
 
     <div class="form-group">
-      <label>Username</label>
-      <input class="form-control" id="loginUsername" name="username" autocomplete="username" required autofocus>
+      <label for="loginUsername" class="form-label">Username</label>
+      <input class="form-control" id="loginUsername" name="username" autocomplete="username" required autofocus aria-required="true">
     </div>
     <div class="form-group">
-      <label>Password</label>
+      <label for="loginPassword" class="form-label">Password</label>
       <div style="position:relative">
-        <input class="form-control" id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        <input class="form-control" id="loginPassword" name="password" type="password" autocomplete="current-password" required aria-required="true">
         <button type="button" class="pw-toggle" onclick="togglePw()" aria-label="Show or hide password">👁</button>
       </div>
     </div>
@@ -47,9 +50,9 @@
   </form>
 </div>
 
-<div id="app-shell" style="display:none">
+<div id="app-shell" style="display:none" role="application" aria-label="FaceForce Pro">
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
     <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="toggleSidebar(false)" aria-label="Close menu">✕</button>
     <div class="sidebar-brand">
       <div class="brand-mark">
@@ -68,42 +71,42 @@
 
     <div class="sidebar-section-label">CORE</div>
     <nav class="sidebar-nav">
-      <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
-        <span class="nav-icon">◈</span><span>Dashboard</span>
+      <a class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')" role="button" tabindex="0" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">◈</span><span>Dashboard</span>
       </a>
-      <a class="nav-item" data-page="recognition" onclick="navigate('recognition')">
-        <span class="nav-icon">◎</span><span>Face Scan</span>
-        <span class="nav-live">LIVE</span>
+      <a class="nav-item" data-page="recognition" onclick="navTo('recognition')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">◎</span><span>Face Scan</span>
+        <span class="nav-live" aria-label="Live feature">LIVE</span>
       </a>
-      <a class="nav-item" data-page="register" onclick="navigate('register')">
-        <span class="nav-icon">⊕</span><span>Register Face</span>
+      <a class="nav-item" data-page="register" onclick="navTo('register')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">⊕</span><span>Register Face</span>
       </a>
     </nav>
 
     <div class="sidebar-section-label">WORKFORCE</div>
     <nav class="sidebar-nav">
-      <a class="nav-item" data-page="employees" onclick="navigate('employees')">
-        <span class="nav-icon">▤</span><span>Employees</span>
-        <span class="nav-count" id="navEmpCount">—</span>
+      <a class="nav-item" data-page="employees" onclick="navTo('employees')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">▤</span><span>Employees</span>
+        <span class="nav-count" id="navEmpCount" aria-live="polite">—</span>
       </a>
-      <a class="nav-item" data-page="departments" onclick="navigate('departments')">
-        <span class="nav-icon">◫</span><span>Departments</span>
+      <a class="nav-item" data-page="departments" onclick="navTo('departments')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">◫</span><span>Departments</span>
       </a>
-      <a class="nav-item" data-page="shifts" onclick="navigate('shifts')">
-        <span class="nav-icon">⧖</span><span>Shifts</span>
+      <a class="nav-item" data-page="shifts" onclick="navTo('shifts')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">⧖</span><span>Shifts</span>
       </a>
     </nav>
 
     <div class="sidebar-section-label">OPERATIONS</div>
     <nav class="sidebar-nav">
-      <a class="nav-item" data-page="attendance" onclick="navigate('attendance')">
-        <span class="nav-icon">▦</span><span>Attendance</span>
+      <a class="nav-item" data-page="attendance" onclick="navTo('attendance')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">▦</span><span>Attendance</span>
       </a>
-      <a class="nav-item" data-page="payroll" onclick="navigate('payroll')">
-        <span class="nav-icon">◉</span><span>Payroll</span>
+      <a class="nav-item" data-page="payroll" onclick="navTo('payroll')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">◉</span><span>Payroll</span>
       </a>
-      <a class="nav-item" data-page="reports" onclick="navigate('reports')">
-        <span class="nav-icon">◧</span><span>Reports</span>
+      <a class="nav-item" data-page="reports" onclick="navTo('reports')" role="button" tabindex="0">
+        <span class="nav-icon" aria-hidden="true">◧</span><span>Reports</span>
       </a>
     </nav>
 
@@ -121,28 +124,56 @@
   </aside>
 
   <!-- MOBILE TOPBAR: only visible below the tablet breakpoint (see main.css) -->
-  <div class="mobile-topbar" id="mobileTopbar">
-    <button class="hamburger-btn" onclick="toggleSidebar(true)" aria-label="Open menu">☰</button>
+  <div class="mobile-topbar" id="mobileTopbar" role="banner">
+    <button class="hamburger-btn" onclick="toggleSidebar(true)" aria-label="Open navigation menu" aria-expanded="false" id="hamburgerBtn">☰</button>
     <span class="mobile-topbar-brand">FaceForce Pro</span>
+    <span class="mobile-topbar-page" id="mobilePageName" aria-live="polite"></span>
   </div>
-  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)" role="presentation"></div>
 
   <!-- MAIN -->
-  <main class="main" id="mainArea">
-    <div id="page-content"></div>
+  <main class="main" id="mainArea" role="main" aria-label="Page content">
+    <div id="page-content" aria-live="polite"></div>
   </main>
+
+  <!-- MOBILE BOTTOM NAV (visible < 640px) -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Quick navigation">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" data-page="dashboard" onclick="navTo('dashboard')" aria-label="Dashboard">
+        <span class="bottom-nav-icon" aria-hidden="true">◈</span>
+        <span>Home</span>
+      </button>
+      <button class="bottom-nav-item" data-page="recognition" onclick="navTo('recognition')" aria-label="Face Scan">
+        <span class="bottom-nav-icon" aria-hidden="true">◎</span>
+        <span>Scan</span>
+      </button>
+      <button class="bottom-nav-item" data-page="employees" onclick="navTo('employees')" aria-label="Employees">
+        <span class="bottom-nav-icon" aria-hidden="true">▤</span>
+        <span>Staff</span>
+      </button>
+      <button class="bottom-nav-item" data-page="attendance" onclick="navTo('attendance')" aria-label="Attendance">
+        <span class="bottom-nav-icon" aria-hidden="true">▦</span>
+        <span>Attend.</span>
+      </button>
+      <button class="bottom-nav-item" data-page="reports" onclick="navTo('reports')" aria-label="Reports">
+        <span class="bottom-nav-icon" aria-hidden="true">◧</span>
+        <span>Reports</span>
+      </button>
+    </div>
+  </nav>
 </div>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- MODAL CONTAINER -->
-<div class="modal-backdrop" id="modalBackdrop" style="display:none">
-  <div class="modal-box" id="modalBox"></div>
+<div class="modal-backdrop" id="modalBackdrop" style="display:none" role="presentation" aria-hidden="true">
+  <div class="modal-box" id="modalBox" tabindex="-1"></div>
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<!-- face-api: using @vladmandic/face-api — actively maintained fork of face-api.js -->
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 <script src="/static/js/api.js"></script>
 <script src="/static/js/auth.js"></script>
 <script src="/static/js/ui.js"></script>

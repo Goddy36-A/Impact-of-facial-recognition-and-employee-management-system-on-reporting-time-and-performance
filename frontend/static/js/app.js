@@ -12,7 +12,29 @@ const PAGES = {
   reports:     renderReports,
 };
 
+// Human-readable page names for mobile topbar
+const PAGE_NAMES = {
+  dashboard:   'Dashboard',
+  recognition: 'Face Scan',
+  register:    'Register Face',
+  employees:   'Employees',
+  departments: 'Departments',
+  shifts:      'Shifts',
+  attendance:  'Attendance',
+  payroll:     'Payroll',
+  reports:     'Reports',
+};
+
 let _currentPage = null;
+
+// navTo() is the public entry point used by nav items.
+// It closes the mobile sidebar before navigating, giving immediate
+// visual feedback that the tap was registered before the new page loads.
+function navTo(pageName) {
+  // Close mobile sidebar/backdrop
+  if(typeof toggleSidebar === 'function') toggleSidebar(false);
+  navigate(pageName);
+}
 
 function navigate(pageName) {
   const [page] = pageName.split('?');
@@ -20,6 +42,7 @@ function navigate(pageName) {
   _currentPage = page;
 
   setActiveNav(page);
+  _updateMobileChrome(page);
 
   const renderer = PAGES[page];
   if(renderer) {
@@ -33,6 +56,30 @@ function navigate(pageName) {
   }
 
   window.history.pushState({page}, '', `#${pageName}`);
+}
+
+// Update mobile topbar page name and bottom nav active state
+function _updateMobileChrome(page) {
+  // Topbar subtitle
+  const namEl = document.getElementById('mobilePageName');
+  if(namEl) namEl.textContent = PAGE_NAMES[page] || '';
+
+  // Sidebar aria-expanded on hamburger
+  const hbtn = document.getElementById('hamburgerBtn');
+  if(hbtn) hbtn.setAttribute('aria-expanded', 'false');
+
+  // Bottom nav active item
+  document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    const active = btn.dataset.page === page;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+
+  // Sidebar nav aria-current
+  document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+    if(el.dataset.page === page) el.setAttribute('aria-current', 'page');
+    else el.removeAttribute('aria-current');
+  });
 }
 
 function init() {

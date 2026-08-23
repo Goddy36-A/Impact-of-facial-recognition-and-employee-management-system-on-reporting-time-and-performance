@@ -1,6 +1,6 @@
 // Recognition Page — Full Pipeline UI
 
-const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/';
 let _recStream = null, _recRunning = false, _modelsLoaded = false;
 let _lastCheckin = 0;
 const CHECKIN_COOLDOWN = 6000;
@@ -17,15 +17,15 @@ function renderRecognition() {
         <span class="tag tag-muted" id="fpsBadge">— FPS</span>
       </div>
     </div>
-    <div class="page-body" style="display:grid;grid-template-columns:1fr 340px;gap:20px">
+    <div class="page-body rec-grid">
       <!-- Camera -->
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="card">
           <div class="card-header">
             <span class="card-title">Live Camera Feed</span>
-            <span class="tag tag-coral" id="camStatus">Off</span>
+            <span class="tag tag-coral" id="camStatus" role="status">Off</span>
           </div>
-          <div class="camera-viewport" id="camViewport" style="background:#000;min-height:420px;display:flex;align-items:center;justify-content:center">
+          <div class="camera-viewport cam-h-420" id="camViewport" style="background:#000">
             <div id="camPlaceholder" style="text-align:center;color:var(--text-3)">
               <div style="font-size:56px;opacity:0.15;margin-bottom:12px">◎</div>
               <p style="font-family:var(--font-mono);font-size:12px">Camera not started</p>
@@ -306,7 +306,7 @@ async function loadTodaySessions() {
   try {
     const data = await API.employees.stats();
     el.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="sessions-mini">
         <div style="background:var(--obsidian3);border-radius:8px;padding:12px;text-align:center">
           <div style="font-family:var(--font-serif);font-size:28px;color:var(--mint)">${data.present_today}</div>
           <div style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">PRESENT</div>
