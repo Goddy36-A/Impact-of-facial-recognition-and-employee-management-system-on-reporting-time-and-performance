@@ -10,9 +10,10 @@ const PAGES = {
   attendance:  renderAttendance,
   payroll:     renderPayroll,
   reports:     renderReports,
+  users:       renderUsers,       // admin only
+  self:        renderSelfService, // employee self-service
 };
 
-// Human-readable page names for mobile topbar
 const PAGE_NAMES = {
   dashboard:   'Dashboard',
   recognition: 'Face Scan',
@@ -23,92 +24,125 @@ const PAGE_NAMES = {
   attendance:  'Attendance',
   payroll:     'Payroll',
   reports:     'Reports',
+  users:       'User Accounts',
+  self:        'My Dashboard',
+};
+
+// Pages that each role is permitted to visit. Admin bypasses all checks.
+const ROLE_PAGES = {
+  hr:         new Set(['dashboard','recognition','register','employees','departments','shifts','attendance','reports']),
+  finance:    new Set(['dashboard','payroll','reports']),
+  supervisor: new Set(['dashboard','attendance','reports']),
+  employee:   new Set(['self']),
+  kiosk:      new Set(['recognition']),
 };
 
 let _currentPage = null;
 
-// navTo() is the public entry point used by nav items.
-// It closes the mobile sidebar before navigating, giving immediate
-// visual feedback that the tap was registered before the new page loads.
+// navTo() — public entry point: closes mobile sidebar first
 function navTo(pageName) {
-  // Close mobile sidebar/backdrop
   if(typeof toggleSidebar === 'function') toggleSidebar(false);
   navigate(pageName);
 }
 
 function navigate(pageName) {
   const [page] = pageName.split('?');
+
+  // Role gate: non-admin users are blocked from pages outside their set
+  const user = typeof currentUser === 'function' ? currentUser() : null;
+  if(user && user.role !== 'admin') {
+    const allowed = ROLE_PAGES[user.role];
+    if(allowed && !allowed.has(page)) {
+      toast('You do not have permission to view that page.', 'warning');
+      return;
+    }
+  }
+
   if(_currentPage === page) return;
   _currentPage = page;
 
   setActiveNav(page);
   _updateMobileChrome(page);
 
+  const content = document.getElementById('page-content');
+  content.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;height:50vh">' +
+    '<div class="spinner" style="width:32px;height:32px;border-width:2px"></div></div>';
+
   const renderer = PAGES[page];
   if(renderer) {
-    document.getElementById('page-content').innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;height:50vh"><div class="spinner" style="width:32px;height:32px;border-width:2px"></div></div>';
     try { renderer(); }
-    catch(e) { console.error('Page render error:', e); toast('Page load error: '+e.message,'error'); }
+    catch(e) {
+      console.error('Page render error:', e);
+      content.innerHTML = `<div class="empty-state" style="margin-top:80px">
+        <div class="empty-icon">⚠</div>
+        <p>Could not load this page.</p>
+        <p style="font-size:11px;color:var(--text-3)">${e.message}</p>
+        <button class="btn btn-ghost" style="margin-top:16px" onclick="navigate('${page}')">Retry</button>
+      </div>`;
+    }
   } else {
-    document.getElementById('page-content').innerHTML =
+    content.innerHTML =
       `<div class="empty-state" style="margin-top:80px"><div class="empty-icon">?</div>Page not found: ${page}</div>`;
   }
 
   window.history.pushState({page}, '', `#${pageName}`);
 }
 
-// Update mobile topbar page name and bottom nav active state
 function _updateMobileChrome(page) {
-  // Topbar subtitle
   const namEl = document.getElementById('mobilePageName');
   if(namEl) namEl.textContent = PAGE_NAMES[page] || '';
 
-  // Sidebar aria-expanded on hamburger
   const hbtn = document.getElementById('hamburgerBtn');
   if(hbtn) hbtn.setAttribute('aria-expanded', 'false');
 
-  // Bottom nav active item
   document.querySelectorAll('.bottom-nav-item').forEach(btn => {
     const active = btn.dataset.page === page;
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', String(active));
   });
 
-  // Sidebar nav aria-current
   document.querySelectorAll('.nav-item[data-page]').forEach(el => {
     if(el.dataset.page === page) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
   });
 }
 
-function init() {
+function init(user) {
   startClock();
 
-  // Route from hash
-  const hash = window.location.hash.slice(1) || 'dashboard';
+  // Kiosk goes straight to recognition — no hash routing
+  if(user && user.role === 'kiosk') {
+    navigate('recognition');
+    return;
+  }
+
+  // Employee self-service goes straight to their dashboard
+  if(user && user.role === 'employee') {
+    navigate('self');
+    return;
+  }
+
+  // All other roles: route from hash or role landing page
+  const cfg     = (typeof ROLE_CONFIG !== 'undefined' && ROLE_CONFIG[user?.role]) || {};
+  const landing = cfg.landing || 'dashboard';
+  const hash    = window.location.hash.slice(1) || landing;
   navigate(hash);
 
   window.addEventListener('popstate', e => {
     if(e.state?.page) navigate(e.state.page);
   });
 
-  // Keyboard shortcut: / to focus search
+  // / shortcut focuses nearest search box
   document.addEventListener('keydown', e => {
-    if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='SELECT') {
+    if(e.key === '/' && !['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
-      const s = document.getElementById('empSearch')||document.getElementById('attSearch');
+      const s = document.querySelector('#empSearch, #attSearch, #userSearch');
       if(s) s.focus();
     }
-    if(e.key==='Escape') closeModal();
+    if(e.key === 'Escape') closeModal();
   });
 
-  console.log('%cFaceForce Pro — Loaded', 'color:#e2ff00;font-weight:bold;font-size:14px');
+  console.log('%cFaceForce Pro v2 — Role: ' + (user?.role || 'unknown'),
+    'color:#e2ff00;font-weight:bold;font-size:13px');
 }
-
-// NOTE: init() is deliberately NOT auto-run on DOMContentLoaded here.
-// auth.js owns that decision - it checks session status first and only calls
-// init() once a valid, authenticated session is confirmed (either an existing
-// one on page load, or a fresh one right after a successful login). Auto-running
-// init() unconditionally here would let the SPA start fetching protected data
-// and rendering pages before the user has actually logged in.

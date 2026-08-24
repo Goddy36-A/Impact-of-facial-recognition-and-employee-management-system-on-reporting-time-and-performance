@@ -1,3 +1,4 @@
+from auth_utils import login_required, role_required
 from flask import Blueprint, jsonify, request
 from database import get_db
 from datetime import datetime, date
@@ -26,6 +27,7 @@ def calc_tax(gross):
     return round(tax, 2)
 
 @payroll_bp.route('/', methods=['GET'])
+@role_required('finance')
 def list_payroll():
     db = get_db()
     period = request.args.get('period', '')
@@ -55,6 +57,7 @@ def list_payroll():
     return jsonify([dict(r) for r in rows])
 
 @payroll_bp.route('/process', methods=['POST'])
+@role_required('finance')
 def process_payroll():
     """Process payroll for a period for all or specific employees."""
     db = get_db()
@@ -124,6 +127,7 @@ def process_payroll():
     })
 
 @payroll_bp.route('/summary', methods=['GET'])
+@role_required('finance')
 def payroll_summary():
     db = get_db()
     period = request.args.get('period', datetime.now().strftime('%Y-%m'))

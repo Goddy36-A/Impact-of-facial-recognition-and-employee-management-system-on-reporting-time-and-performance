@@ -136,14 +136,29 @@ def init_db():
     # ── USERS (system auth) ───────────────────────────────────────────────────
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        username    TEXT NOT NULL UNIQUE,
-        password    TEXT NOT NULL,
-        role        TEXT DEFAULT 'viewer',
-        employee_id INTEGER REFERENCES employees(id),
-        last_login  TEXT,
-        created_at  TEXT DEFAULT (datetime('now'))
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        username      TEXT NOT NULL UNIQUE,
+        password      TEXT NOT NULL,
+        role          TEXT DEFAULT 'employee',
+        full_name     TEXT,
+        department_id INTEGER REFERENCES departments(id),
+        employee_id   INTEGER REFERENCES employees(id),
+        is_active     INTEGER DEFAULT 1,
+        last_login    TEXT,
+        created_at    TEXT DEFAULT (datetime('now'))
     )""")
+
+    # Migration: add columns to existing databases that pre-date this schema
+    for col, definition in [
+        ('full_name',     'TEXT'),
+        ('department_id', 'INTEGER REFERENCES departments(id)'),
+        ('is_active',     'INTEGER DEFAULT 1'),
+    ]:
+        try:
+            cur.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
 
     # ── AUDIT LOG ─────────────────────────────────────────────────────────────
     cur.execute("""
@@ -247,9 +262,7 @@ def _seed_demo_data(conn):
                 """, (emp_id, att_date, check_in, check_out,
                       round(85 + random.random() * 14, 1), 'present', round(overtime, 2)))
 
-    # Admin user — password is never hardcoded. Set INITIAL_ADMIN_PASSWORD to choose
-    # it yourself; otherwise a random one is generated and printed once, here, so it
-    # is never committed to source control or written into documentation.
+    # Admin user
     import secrets
     admin_username = os.environ.get('INITIAL_ADMIN_USERNAME', 'admin')
     admin_password = os.environ.get('INITIAL_ADMIN_PASSWORD')
@@ -257,8 +270,22 @@ def _seed_demo_data(conn):
     if generated:
         admin_password = secrets.token_urlsafe(12)
     pw_hash = generate_password_hash(admin_password)
-    cur.execute("INSERT INTO users (username,password,role) VALUES (?,?,?)",
-                (admin_username, pw_hash, 'admin'))
+    cur.execute("INSERT INTO users (username,password,role,full_name,is_active) VALUES (?,?,?,?,1)",
+                (admin_username, pw_hash, 'admin', 'System Administrator'))
+
+    # Sample accounts for each role (demo password: FaceForce2025)
+    demo_pw = generate_password_hash('FaceForce2025')
+    demo_users = [
+        ('hr_manager',     demo_pw, 'hr',         'Helen Atimango',       3,  8),   # dept=HR, emp=E008
+        ('finance_officer',demo_pw, 'finance',     'Jane Kemigisha',       4,  10),  # dept=Finance, emp=E010
+        ('eng_supervisor', demo_pw, 'supervisor',  'Alice Nakato',         1,  1),   # dept=Eng, emp=E001
+        ('kiosk_gate',     demo_pw, 'kiosk',       'Main Gate Kiosk',      None, None),
+        ('brian_emp',      demo_pw, 'employee',    'Brian Omondi',         1,  2),   # emp=E002
+    ]
+    for uname, pw, role, name, dept_id, emp_id in demo_users:
+        cur.execute("""INSERT INTO users (username,password,role,full_name,department_id,employee_id,is_active)
+                       VALUES (?,?,?,?,?,?,1)""",
+                    (uname, pw, role, name, dept_id, emp_id))
 
     # Update dept headcounts
     cur.execute("""
@@ -271,10 +298,10 @@ def _seed_demo_data(conn):
     print("✅ Demo data seeded (18 employees, 7 days attendance)")
     if generated:
         print("=" * 64)
-        print(f"Bootstrap admin account created — username: {admin_username}")
+        print(f"Bootstrap admin account: username={admin_username}")
         print(f"Generated temporary password: {admin_password}")
-        print("Log in and change this password immediately. It will not be shown again.")
+        print("Log in and change this password immediately.")
         print("=" * 64)
-    else:
-        print(f"Bootstrap admin account created — username: {admin_username} "
-              f"(password set from INITIAL_ADMIN_PASSWORD)")
+    print("Demo accounts (password: FaceForce2025):")
+    print("  hr_manager | finance_officer | eng_supervisor | kiosk_gate | brian_emp")
+    print("=" * 64)

@@ -1,3 +1,4 @@
+from auth_utils import login_required, role_required
 from flask import Blueprint, jsonify, request
 from database import get_db
 from datetime import datetime, date
@@ -5,6 +6,7 @@ from datetime import datetime, date
 attendance_bp = Blueprint('attendance', __name__)
 
 @attendance_bp.route('/', methods=['GET'])
+@login_required
 def list_attendance():
     db = get_db()
     att_date = request.args.get('date', date.today().strftime('%Y-%m-%d'))

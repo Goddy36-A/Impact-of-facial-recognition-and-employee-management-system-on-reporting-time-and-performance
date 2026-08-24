@@ -1,9 +1,11 @@
+from auth_utils import login_required, role_required
 from flask import Blueprint, jsonify, request
 from database import get_db
 
 shifts_bp = Blueprint('shifts', __name__)
 
 @shifts_bp.route('/', methods=['GET'])
+@login_required
 def list_shifts():
     db = get_db()
     rows = db.execute("""
@@ -17,6 +19,7 @@ def list_shifts():
     return jsonify([dict(r) for r in rows])
 
 @shifts_bp.route('/', methods=['POST'])
+@login_required
 def create_shift():
     db = get_db()
     data = request.json or {}
@@ -27,6 +30,7 @@ def create_shift():
     return jsonify({'id': cur.lastrowid, 'message': 'Created'}), 201
 
 @shifts_bp.route('/assign', methods=['POST'])
+@login_required
 def assign_shift():
     db = get_db()
     data = request.json or {}

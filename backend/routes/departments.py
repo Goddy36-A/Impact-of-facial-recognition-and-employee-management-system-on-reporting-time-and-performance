@@ -1,9 +1,11 @@
+from auth_utils import login_required, role_required
 from flask import Blueprint, jsonify, request
 from database import get_db
 
 departments_bp = Blueprint('departments', __name__)
 
 @departments_bp.route('/', methods=['GET'])
+@login_required
 def list_departments():
     db = get_db()
     rows = db.execute("""
@@ -16,6 +18,7 @@ def list_departments():
     return jsonify([dict(r) for r in rows])
 
 @departments_bp.route('/', methods=['POST'])
+@role_required('hr')
 def create_department():
     db = get_db()
     data = request.json or {}
@@ -30,6 +33,7 @@ def create_department():
         return jsonify({'error': str(e)}), 400
 
 @departments_bp.route('/<int:dept_id>', methods=['PUT'])
+@role_required('hr')
 def update_department(dept_id):
     db = get_db()
     data = request.json or {}
@@ -41,6 +45,7 @@ def update_department(dept_id):
     return jsonify({'message': 'Updated'})
 
 @departments_bp.route('/<int:dept_id>', methods=['DELETE'])
+@role_required('hr')
 def delete_department(dept_id):
     db = get_db()
     count = db.execute("SELECT COUNT(*) FROM employees WHERE department_id=?", (dept_id,)).fetchone()[0]

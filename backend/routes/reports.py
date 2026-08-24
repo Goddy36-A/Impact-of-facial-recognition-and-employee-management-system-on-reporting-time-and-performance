@@ -1,9 +1,11 @@
+from auth_utils import login_required, role_required
 from flask import Blueprint, jsonify, request
 from database import get_db
 
 reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/attendance-summary', methods=['GET'])
+@login_required
 def attendance_summary():
     db = get_db()
     days = int(request.args.get('days', 30))
@@ -19,6 +21,7 @@ def attendance_summary():
     return jsonify([dict(r) for r in rows])
 
 @reports_bp.route('/top-absentees', methods=['GET'])
+@login_required
 def top_absentees():
     db = get_db()
     rows = db.execute("""
@@ -34,6 +37,7 @@ def top_absentees():
     return jsonify([dict(r) for r in rows])
 
 @reports_bp.route('/overtime', methods=['GET'])
+@login_required
 def overtime_report():
     db = get_db()
     rows = db.execute("""
@@ -49,6 +53,7 @@ def overtime_report():
     return jsonify([dict(r) for r in rows])
 
 @reports_bp.route('/payroll-trend', methods=['GET'])
+@login_required
 def payroll_trend():
     db = get_db()
     rows = db.execute("""

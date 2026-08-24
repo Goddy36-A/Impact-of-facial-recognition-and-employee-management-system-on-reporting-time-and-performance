@@ -47,6 +47,19 @@
       </div>
     </div>
     <button type="submit" class="btn btn-primary login-submit" id="loginSubmitBtn">Sign in</button>
+
+    <div style="margin-top:14px;text-align:center">
+      <div style="font-size:10px;color:var(--text-3);margin-bottom:8px;font-family:var(--font-mono);letter-spacing:.5px">— OR —</div>
+      <button type="button" class="btn btn-ghost" style="width:100%" onclick="openCreateAccountModal()">
+        ⊕ Request Account Access
+      </button>
+    </div>
+
+    <div style="margin-top:16px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;font-size:10px;color:var(--text-3);font-family:var(--font-mono);line-height:1.8">
+      <div style="color:var(--citron);margin-bottom:2px;font-size:9px;letter-spacing:.5px">DEMO ACCOUNTS · password: FaceForce2025</div>
+      <div>admin &nbsp;·&nbsp; hr_manager &nbsp;·&nbsp; finance_officer</div>
+      <div>eng_supervisor &nbsp;·&nbsp; brian_emp &nbsp;·&nbsp; kiosk_gate</div>
+    </div>
   </form>
 </div>
 
@@ -69,46 +82,8 @@
       </div>
     </div>
 
-    <div class="sidebar-section-label">CORE</div>
-    <nav class="sidebar-nav">
-      <a class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')" role="button" tabindex="0" aria-current="page">
-        <span class="nav-icon" aria-hidden="true">◈</span><span>Dashboard</span>
-      </a>
-      <a class="nav-item" data-page="recognition" onclick="navTo('recognition')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">◎</span><span>Face Scan</span>
-        <span class="nav-live" aria-label="Live feature">LIVE</span>
-      </a>
-      <a class="nav-item" data-page="register" onclick="navTo('register')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">⊕</span><span>Register Face</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-section-label">WORKFORCE</div>
-    <nav class="sidebar-nav">
-      <a class="nav-item" data-page="employees" onclick="navTo('employees')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">▤</span><span>Employees</span>
-        <span class="nav-count" id="navEmpCount" aria-live="polite">—</span>
-      </a>
-      <a class="nav-item" data-page="departments" onclick="navTo('departments')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">◫</span><span>Departments</span>
-      </a>
-      <a class="nav-item" data-page="shifts" onclick="navTo('shifts')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">⧖</span><span>Shifts</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-section-label">OPERATIONS</div>
-    <nav class="sidebar-nav">
-      <a class="nav-item" data-page="attendance" onclick="navTo('attendance')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">▦</span><span>Attendance</span>
-      </a>
-      <a class="nav-item" data-page="payroll" onclick="navTo('payroll')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">◉</span><span>Payroll</span>
-      </a>
-      <a class="nav-item" data-page="reports" onclick="navTo('reports')" role="button" tabindex="0">
-        <span class="nav-icon" aria-hidden="true">◧</span><span>Reports</span>
-      </a>
-    </nav>
+    <!-- Nav items built dynamically by auth.js based on role -->
+    <div id="sidebarNavContainer" style="flex:1;overflow-y:auto"></div>
 
     <div class="sidebar-footer">
       <div class="sidebar-user" id="sidebarUser">
@@ -138,27 +113,8 @@
 
   <!-- MOBILE BOTTOM NAV (visible < 640px) -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Quick navigation">
-    <div class="bottom-nav-inner">
-      <button class="bottom-nav-item active" data-page="dashboard" onclick="navTo('dashboard')" aria-label="Dashboard">
-        <span class="bottom-nav-icon" aria-hidden="true">◈</span>
-        <span>Home</span>
-      </button>
-      <button class="bottom-nav-item" data-page="recognition" onclick="navTo('recognition')" aria-label="Face Scan">
-        <span class="bottom-nav-icon" aria-hidden="true">◎</span>
-        <span>Scan</span>
-      </button>
-      <button class="bottom-nav-item" data-page="employees" onclick="navTo('employees')" aria-label="Employees">
-        <span class="bottom-nav-icon" aria-hidden="true">▤</span>
-        <span>Staff</span>
-      </button>
-      <button class="bottom-nav-item" data-page="attendance" onclick="navTo('attendance')" aria-label="Attendance">
-        <span class="bottom-nav-icon" aria-hidden="true">▦</span>
-        <span>Attend.</span>
-      </button>
-      <button class="bottom-nav-item" data-page="reports" onclick="navTo('reports')" aria-label="Reports">
-        <span class="bottom-nav-icon" aria-hidden="true">◧</span>
-        <span>Reports</span>
-      </button>
+    <div class="bottom-nav-inner" id="bottomNavInner">
+      <!-- Built dynamically by auth.js based on role -->
     </div>
   </nav>
 </div>
@@ -186,6 +142,8 @@
 <script src="/static/js/pages/attendance.js"></script>
 <script src="/static/js/pages/payroll.js"></script>
 <script src="/static/js/pages/reports.js"></script>
+<script src="/static/js/pages/users.js"></script>
+<script src="/static/js/pages/self-service.js"></script>
 <script src="/static/js/app.js"></script>
 </body>
 </html>

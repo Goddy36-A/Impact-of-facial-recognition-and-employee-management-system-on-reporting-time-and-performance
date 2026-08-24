@@ -25,6 +25,7 @@ from routes.shifts import shifts_bp
 from routes.reports import reports_bp
 from routes.auth import auth_bp
 from routes.departments import departments_bp
+from routes.users import users_bp
 
 app = Flask(
     __name__,
@@ -72,18 +73,14 @@ app.register_blueprint(payroll_bp,      url_prefix='/api/payroll')
 app.register_blueprint(shifts_bp,       url_prefix='/api/shifts')
 app.register_blueprint(reports_bp,      url_prefix='/api/reports')
 app.register_blueprint(departments_bp,  url_prefix='/api/departments')
+app.register_blueprint(users_bp,        url_prefix='/api/users')
 
 # ── Global authentication guard ──────────────────────────────────────────────
-# Every /api/* route requires a logged-in session except the handful explicitly
-# exempted below. This is enforced centrally, in one place, rather than via a
-# decorator that has to be remembered on every individual route function - the
-# previous version of this app had a login endpoint that no other route ever
-# actually checked, so every employee record, payroll figure, and biometric
-# face descriptor was reachable by anyone with the URL and no credentials.
 _PUBLIC_ENDPOINTS = {
     '/api/auth/login',
-    '/api/auth/me',      # must be callable while logged out - it's how the frontend checks auth status
-    '/api/auth/logout',  # idempotent - safe to call even without an active session
+    '/api/auth/me',
+    '/api/auth/logout',
+    '/api/users/register',   # public account request
     '/api/health',
 }
 

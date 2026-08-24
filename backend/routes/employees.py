@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from database import get_db
 from datetime import datetime
+from auth_utils import login_required, role_required
 
 employees_bp = Blueprint('employees', __name__)
 
@@ -9,13 +10,34 @@ def emp_row(row):
     return d
 
 @employees_bp.route('/', methods=['GET'])
+@login_required
 def list_employees():
     db = get_db()
-    q = request.args.get('q', '')
-    dept = request.args.get('department_id', '')
-    status = request.args.get('status', '')
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 20))
+    q       = request.args.get('q', '')
+    dept    = request.args.get('department_id', '')
+    status  = request.args.get('status', '')
+    page    = int(request.args.get('page', 1))
+    per_page= int(request.args.get('per_page', 20))
+
+    # Supervisors can only see their own department
+    user_role = session.get('role')
+    user_dept = session.get('department_id')
+    if user_role == 'supervisor' and user_dept:
+        dept = str(user_dept)
+
+    # Employees can only look up themselves
+    if user_role == 'employee':
+        emp_id = session.get('employee_id')
+        if not emp_id:
+            db.close()
+            return jsonify({'employees': [], 'total': 0, 'page': 1, 'per_page': per_page, 'pages': 0})
+        row = db.execute("""
+            SELECT e.*, d.name AS department_name, d.color AS dept_color, 0 AS present_today
+            FROM employees e LEFT JOIN departments d ON d.id=e.department_id
+            WHERE e.id=?""", (emp_id,)).fetchone()
+        db.close()
+        return jsonify({'employees': [emp_row(row)] if row else [], 'total': 1 if row else 0,
+                        'page': 1, 'per_page': per_page, 'pages': 1})
 
     sql = """
         SELECT e.*, d.name AS department_name, d.color AS dept_color,
@@ -36,16 +58,15 @@ def list_employees():
         params.append(status)
 
     total = db.execute(f"SELECT COUNT(*) FROM ({sql})", params).fetchone()[0]
-    sql += f" ORDER BY e.first_name LIMIT {per_page} OFFSET {(page-1)*per_page}"
-    rows = db.execute(sql, params).fetchall()
+    sql  += f" ORDER BY e.first_name LIMIT {per_page} OFFSET {(page-1)*per_page}"
+    rows  = db.execute(sql, params).fetchall()
     db.close()
-    return jsonify({
-        'employees': [emp_row(r) for r in rows],
-        'total': total, 'page': page, 'per_page': per_page,
-        'pages': (total + per_page - 1) // per_page
-    })
+    return jsonify({'employees': [emp_row(r) for r in rows], 'total': total,
+                    'page': page, 'per_page': per_page,
+                    'pages': (total + per_page - 1) // per_page})
 
 @employees_bp.route('/<int:emp_id>', methods=['GET'])
+@login_required
 def get_employee(emp_id):
     db = get_db()
     row = db.execute("""
@@ -81,6 +102,7 @@ def get_employee(emp_id):
     return jsonify(emp)
 
 @employees_bp.route('/', methods=['POST'])
+@role_required('hr')
 def create_employee():
     db = get_db()
     data = request.json
@@ -110,7 +132,9 @@ def create_employee():
         return jsonify({'error': str(e)}), 400
 
 @employees_bp.route('/<int:emp_id>', methods=['PUT'])
+@role_required('hr')
 def update_employee(emp_id):
+
     db = get_db()
     data = request.json
     fields = ['first_name','last_name','email','phone','department_id','position',
@@ -127,6 +151,7 @@ def update_employee(emp_id):
     return jsonify({'message': 'Updated'})
 
 @employees_bp.route('/<int:emp_id>', methods=['DELETE'])
+@role_required('hr')
 def delete_employee(emp_id):
     db = get_db()
     emp = db.execute("SELECT department_id FROM employees WHERE id=?", (emp_id,)).fetchone()
@@ -138,6 +163,7 @@ def delete_employee(emp_id):
     return jsonify({'message': 'Deleted'})
 
 @employees_bp.route('/stats/summary', methods=['GET'])
+@login_required
 def stats_summary():
     db = get_db()
     total = db.execute("SELECT COUNT(*) FROM employees WHERE status='active'").fetchone()[0]

@@ -81,5 +81,15 @@ const API = {
     absentees:  ()     => API.get('/reports/top-absentees'),
     overtime:   ()     => API.get('/reports/overtime'),
     payrollTrend: ()   => API.get('/reports/payroll-trend'),
-  }
+  },
+  users: {
+    list:           ()       => API.get('/users/'),
+    get:            (id)     => API.get(`/users/${id}`),
+    create:         (d)      => API.post('/users/', d),
+    update:         (id, d)  => API.put(`/users/${id}`, d),
+    delete:         (id)     => API.delete(`/users/${id}`),
+    register:       (d)      => API.post('/users/register', d),  // public
+    myProfile:      ()       => API.get('/users/me/profile'),
+    pendingCount:   ()       => API.get('/users/pending/count'),
+  },
 };
