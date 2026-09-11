@@ -90,19 +90,28 @@ function navigate(pageName) {
 }
 
 function _updateMobileChrome(page) {
+  // Mobile topbar page name
   const namEl = document.getElementById('mobilePageName');
   if(namEl) namEl.textContent = PAGE_NAMES[page] || '';
 
+  // Desktop topbar page title
+  const titleEl = document.getElementById('topbarPageTitle');
+  if(titleEl) titleEl.textContent = PAGE_NAMES[page] || 'FaceForce Pro';
+
+  // Hamburger aria-expanded
   const hbtn = document.getElementById('hamburgerBtn');
   if(hbtn) hbtn.setAttribute('aria-expanded', 'false');
 
+  // Bottom nav active state
   document.querySelectorAll('.bottom-nav-item').forEach(btn => {
     const active = btn.dataset.page === page;
     btn.classList.toggle('active', active);
     btn.setAttribute('aria-pressed', String(active));
   });
 
+  // Sidebar nav aria-current
   document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
     if(el.dataset.page === page) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
   });

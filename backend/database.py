@@ -7,7 +7,9 @@ import sqlite3, os, json
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'faceforce.db')
+# Use /data for persistent storage on Railway, fall back to local for development
+_data_dir = '/data' if os.path.isdir('/data') else os.path.join(os.path.dirname(__file__), '..')
+DB_PATH = os.path.join(_data_dir, 'faceforce.db')
 
 
 def get_db():

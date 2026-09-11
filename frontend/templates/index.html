@@ -3,132 +3,167 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FaceForce Pro — Enterprise Employee Intelligence</title>
+<title>FaceForce Pro — Employee Management</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Geist+Mono:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="/static/css/main.css"/>
 </head>
 <body>
 
-<!-- SKIP TO CONTENT (Accessibility) -->
 <a href="#mainArea" class="skip-link">Skip to main content</a>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen" class="login-screen" style="display:none">
-  <form class="login-card" id="loginForm" onsubmit="return handleLogin(event)">
-    <div class="login-brand">
-      <div class="brand-mark">
-        <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.06)"/>
-          <circle cx="16" cy="12" r="5" stroke="#e2ff00" stroke-width="1.5"/>
-          <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#e2ff00" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="16" cy="12" r="2.5" fill="#e2ff00"/>
+  <div class="login-wrapper">
+    <div class="login-brand-panel">
+      <div class="login-logo">
+        <svg width="52" height="52" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="14" fill="#111b14"/>
+          <circle cx="24" cy="18" r="7" stroke="#4ade80" stroke-width="2"/>
+          <path d="M9 42c0-8.284 6.716-15 15-15s15 6.716 15 15" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="24" cy="18" r="3.5" fill="#4ade80"/>
         </svg>
       </div>
+      <div class="login-product-name">FaceForce Pro</div>
+      <div class="login-product-desc">Facial Recognition &amp; Employee Management System</div>
+    </div>
+
+    <form class="login-card" id="loginForm" onsubmit="return handleLogin(event)" novalidate>
+      <h2 class="login-card-title">Sign in to your account</h2>
+      <div id="loginError" class="field-error" style="display:none" role="alert"></div>
+
+      <div class="form-group">
+        <label for="loginUsername" class="form-label">Username</label>
+        <input class="form-control" id="loginUsername" name="username"
+               autocomplete="username" required autofocus placeholder="Enter your username">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword" class="form-label">Password</label>
+        <div class="pw-wrap">
+          <input class="form-control" id="loginPassword" name="password" type="password"
+                 autocomplete="current-password" required placeholder="Enter your password">
+          <button type="button" class="pw-toggle" onclick="togglePw()" aria-label="Show/hide password">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Sign In</button>
+
+      <div class="login-divider"><span>or</span></div>
+      <button type="button" class="btn btn-outline btn-block" onclick="openCreateAccountModal()">Request Account Access</button>
+
+      <div class="login-demo-box">
+        <div class="login-demo-title">Demo accounts &mdash; password: <strong>FaceForce2025</strong></div>
+        <div class="login-demo-chips">
+          <button type="button" onclick="quickFill('admin')">admin</button>
+          <button type="button" onclick="quickFill('hr_manager')">hr_manager</button>
+          <button type="button" onclick="quickFill('finance_officer')">finance_officer</button>
+          <button type="button" onclick="quickFill('eng_supervisor')">eng_supervisor</button>
+          <button type="button" onclick="quickFill('brian_emp')">brian_emp</button>
+          <button type="button" onclick="quickFill('kiosk_gate')">kiosk_gate</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar-brand">
+      <svg width="26" height="26" viewBox="0 0 48 48" fill="none">
+        <rect width="48" height="48" rx="12" fill="#111b14"/>
+        <circle cx="24" cy="18" r="7" stroke="#4ade80" stroke-width="2"/>
+        <path d="M9 42c0-8.284 6.716-15 15-15s15 6.716 15 15" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="24" cy="18" r="3.5" fill="#4ade80"/>
+      </svg>
       <div>
-        <div class="brand-name">FaceForce</div>
-        <div class="brand-badge">PRO</div>
+        <div class="brand-name">FaceForce <span class="brand-pro">Pro</span></div>
       </div>
-    </div>
-    <h1 class="login-title">Sign in</h1>
-    <p class="login-subtitle">Employee Management System</p>
-
-    <div id="loginError" class="login-error" style="display:none"></div>
-
-    <div class="form-group">
-      <label for="loginUsername" class="form-label">Username</label>
-      <input class="form-control" id="loginUsername" name="username" autocomplete="username" required autofocus aria-required="true">
-    </div>
-    <div class="form-group">
-      <label for="loginPassword" class="form-label">Password</label>
-      <div style="position:relative">
-        <input class="form-control" id="loginPassword" name="password" type="password" autocomplete="current-password" required aria-required="true">
-        <button type="button" class="pw-toggle" onclick="togglePw()" aria-label="Show or hide password">👁</button>
-      </div>
-    </div>
-    <button type="submit" class="btn btn-primary login-submit" id="loginSubmitBtn">Sign in</button>
-
-    <div style="margin-top:14px;text-align:center">
-      <div style="font-size:10px;color:var(--text-3);margin-bottom:8px;font-family:var(--font-mono);letter-spacing:.5px">— OR —</div>
-      <button type="button" class="btn btn-ghost" style="width:100%" onclick="openCreateAccountModal()">
-        ⊕ Request Account Access
+      <button class="sidebar-close-btn" onclick="toggleSidebar(false)" aria-label="Close menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
-    <div style="margin-top:16px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;font-size:10px;color:var(--text-3);font-family:var(--font-mono);line-height:1.8">
-      <div style="color:var(--citron);margin-bottom:2px;font-size:9px;letter-spacing:.5px">DEMO ACCOUNTS · password: FaceForce2025</div>
-      <div>admin &nbsp;·&nbsp; hr_manager &nbsp;·&nbsp; finance_officer</div>
-      <div>eng_supervisor &nbsp;·&nbsp; brian_emp &nbsp;·&nbsp; kiosk_gate</div>
-    </div>
-  </form>
-</div>
-
-<div id="app-shell" style="display:none" role="application" aria-label="FaceForce Pro">
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
-    <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="toggleSidebar(false)" aria-label="Close menu">✕</button>
-    <div class="sidebar-brand">
-      <div class="brand-mark">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.06)"/>
-          <circle cx="16" cy="12" r="5" stroke="#e2ff00" stroke-width="1.5"/>
-          <path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#e2ff00" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="16" cy="12" r="2.5" fill="#e2ff00"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-        <span class="brand-name">FaceForce</span>
-        <span class="brand-badge">PRO</span>
-      </div>
-    </div>
-
-    <!-- Nav items built dynamically by auth.js based on role -->
-    <div id="sidebarNavContainer" style="flex:1;overflow-y:auto"></div>
+    <div id="sidebarNavContainer" class="sidebar-nav-container"></div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-user" id="sidebarUser">
+      <div class="sidebar-user-info">
         <div class="user-avatar" id="userAvatar">?</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">—</div>
+        <div>
+          <div class="user-name" id="userName">Loading…</div>
           <div class="user-role" id="userRole">—</div>
         </div>
-        <button class="sidebar-user-btn" onclick="openAccountMenu(event)" aria-label="Account menu" title="Account">⋯</button>
       </div>
+      <button class="sidebar-logout-btn" onclick="handleLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
       <div class="sidebar-clock" id="sidebarClock">--:--:--</div>
     </div>
   </aside>
 
-  <!-- MOBILE TOPBAR: only visible below the tablet breakpoint (see main.css) -->
-  <div class="mobile-topbar" id="mobileTopbar" role="banner">
-    <button class="hamburger-btn" onclick="toggleSidebar(true)" aria-label="Open navigation menu" aria-expanded="false" id="hamburgerBtn">☰</button>
+  <!-- DESKTOP TOPBAR -->
+  <header class="desktop-topbar" id="desktopTopbar">
+    <div class="topbar-page-title" id="topbarPageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <div class="topbar-user-pill">
+        <div class="topbar-avatar" id="topbarAvatar">?</div>
+        <div class="topbar-user-text">
+          <span class="topbar-user-name" id="topbarUserName">—</span>
+          <span class="topbar-user-role" id="topbarUserRole">—</span>
+        </div>
+      </div>
+      <div class="topbar-divider"></div>
+      <button class="topbar-logout-btn" onclick="handleLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-topbar" id="mobileTopbar">
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar(true)" aria-label="Open menu" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <span class="mobile-topbar-brand">FaceForce Pro</span>
-    <span class="mobile-topbar-page" id="mobilePageName" aria-live="polite"></span>
+    <button class="mobile-logout-btn" onclick="handleLogout()" aria-label="Sign out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
   </div>
-  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)" role="presentation"></div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
 
   <!-- MAIN -->
-  <main class="main" id="mainArea" role="main" aria-label="Page content">
+  <main class="main" id="mainArea" role="main">
     <div id="page-content" aria-live="polite"></div>
   </main>
 
-  <!-- MOBILE BOTTOM NAV (visible < 640px) -->
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Quick navigation">
-    <div class="bottom-nav-inner" id="bottomNavInner">
-      <!-- Built dynamically by auth.js based on role -->
-    </div>
+    <div class="bottom-nav-inner" id="bottomNavInner"></div>
   </nav>
 </div>
 
-<!-- TOAST CONTAINER -->
-<div class="toast-container" id="toastContainer"></div>
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer" role="region" aria-label="Notifications"></div>
 
-<!-- MODAL CONTAINER -->
-<div class="modal-backdrop" id="modalBackdrop" style="display:none" role="presentation" aria-hidden="true">
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" style="display:none" aria-hidden="true">
   <div class="modal-box" id="modalBox" tabindex="-1"></div>
 </div>
 
-<!-- Scripts -->
-<!-- face-api: using @vladmandic/face-api — actively maintained fork of face-api.js -->
+<script>
+function quickFill(u) {
+  document.getElementById('loginUsername').value = u;
+  document.getElementById('loginPassword').value = 'FaceForce2025';
+  document.getElementById('loginSubmitBtn').focus();
+}
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 <script src="/static/js/api.js"></script>
 <script src="/static/js/auth.js"></script>

@@ -1,343 +1,219 @@
-// FaceForce Pro — Auth gate, role-aware nav, mobile sidebar
+// FaceForce Pro — Auth & Shell v3
 
-// ── SESSION STATE ─────────────────────────────────────────────
-// Stored in memory (not localStorage) — cleared on tab close.
 let _currentUser = null;
-
-function currentUser()  { return _currentUser; }
+function currentUser() { return _currentUser; }
 function hasRole(...roles) {
-  if(!_currentUser) return false;
-  if(_currentUser.role === 'admin') return true;   // admin passes every check
+  if (!_currentUser) return false;
+  if (_currentUser.role === 'admin') return true;
   return roles.includes(_currentUser.role);
 }
 
-// ── ROLE CONFIG ───────────────────────────────────────────────
-// Defines which nav items each role can see and which page they
-// land on after login. Kiosk gets a completely different UI.
 const ROLE_CONFIG = {
-  admin:      { landing:'dashboard', nav: ['dashboard','recognition','register','employees','departments','shifts','attendance','payroll','reports','users'] },
-  hr:         { landing:'dashboard', nav: ['dashboard','recognition','register','employees','departments','shifts','attendance','reports'] },
-  finance:    { landing:'payroll',   nav: ['dashboard','payroll','reports'] },
-  supervisor: { landing:'attendance',nav: ['dashboard','attendance','reports'] },
-  employee:   { landing:'self',      nav: ['self'] },
-  kiosk:      { landing:'recognition', nav: [] },  // fullscreen — no sidebar
-  pending:    { landing:null,        nav: [] },
+  admin:      { landing:'dashboard', nav:['dashboard','recognition','register','employees','departments','shifts','attendance','payroll','reports','users'] },
+  hr:         { landing:'dashboard', nav:['dashboard','recognition','register','employees','departments','shifts','attendance','reports'] },
+  finance:    { landing:'payroll',   nav:['dashboard','payroll','reports'] },
+  supervisor: { landing:'attendance',nav:['dashboard','attendance','reports'] },
+  employee:   { landing:'self',      nav:['self'] },
+  kiosk:      { landing:'recognition',nav:[] },
+  pending:    { landing:null,        nav:[] },
 };
 
 const NAV_ITEMS = [
-  { page:'dashboard',   icon:'◈', label:'Dashboard',     section:'CORE' },
-  { page:'recognition', icon:'◎', label:'Face Scan',     section:'CORE', badge:'LIVE' },
-  { page:'register',    icon:'⊕', label:'Register Face', section:'CORE' },
-  { page:'employees',   icon:'▤', label:'Employees',     section:'WORKFORCE', count:'navEmpCount' },
-  { page:'departments', icon:'◫', label:'Departments',   section:'WORKFORCE' },
-  { page:'shifts',      icon:'⧖', label:'Shifts',        section:'WORKFORCE' },
-  { page:'attendance',  icon:'▦', label:'Attendance',    section:'OPERATIONS' },
-  { page:'payroll',     icon:'◉', label:'Payroll',       section:'OPERATIONS' },
-  { page:'reports',     icon:'◧', label:'Reports',       section:'OPERATIONS' },
-  { page:'users',       icon:'⊞', label:'User Accounts', section:'ADMIN', badge:'pendingCount' },
+  {page:'dashboard',   icon:'📊', label:'Dashboard',    section:'OVERVIEW'},
+  {page:'recognition', icon:'📷', label:'Face Scan',     section:'OVERVIEW', badge:'LIVE'},
+  {page:'register',    icon:'➕', label:'Register Face', section:'OVERVIEW'},
+  {page:'employees',   icon:'👥', label:'Employees',     section:'WORKFORCE', count:'navEmpCount'},
+  {page:'departments', icon:'🏢', label:'Departments',   section:'WORKFORCE'},
+  {page:'shifts',      icon:'🕐', label:'Shifts',        section:'WORKFORCE'},
+  {page:'attendance',  icon:'✅', label:'Attendance',    section:'OPERATIONS'},
+  {page:'payroll',     icon:'💰', label:'Payroll',       section:'OPERATIONS'},
+  {page:'reports',     icon:'📈', label:'Reports',       section:'OPERATIONS'},
+  {page:'users',       icon:'🔐', label:'User Accounts', section:'ADMIN', pendingBadge:true},
+  {page:'self',        icon:'👤', label:'My Dashboard',  section:'MY ACCOUNT'},
 ];
 
-const BOTTOM_NAV_ITEMS = [
-  { page:'dashboard',   icon:'◈', label:'Home'    },
-  { page:'recognition', icon:'◎', label:'Scan'    },
-  { page:'employees',   icon:'▤', label:'Staff'   },
-  { page:'attendance',  icon:'▦', label:'Attend.' },
-  { page:'reports',     icon:'◧', label:'Reports' },
-];
+const BOTTOM_NAV = {
+  admin:      [['dashboard','📊','Home'],['recognition','📷','Scan'],['employees','👥','Staff'],['attendance','✅','Attend.'],['reports','📈','Reports']],
+  hr:         [['dashboard','📊','Home'],['employees','👥','Staff'],['attendance','✅','Attend.'],['recognition','📷','Scan'],['reports','📈','Reports']],
+  finance:    [['dashboard','📊','Home'],['payroll','💰','Payroll'],['reports','📈','Reports']],
+  supervisor: [['dashboard','📊','Home'],['attendance','✅','Attend.'],['reports','📈','Reports']],
+  employee:   [['self','👤','My Info']],
+  kiosk:      [],
+};
 
-// ── BUILD ROLE-AWARE NAV ──────────────────────────────────────
 function _buildNav(user) {
-  const cfg      = ROLE_CONFIG[user.role] || ROLE_CONFIG.employee;
-  const allowed  = new Set(cfg.nav);
-  const sidebarNav = document.getElementById('sidebarNavContainer');
-  if(!sidebarNav) return;
-
-  let html = '';
-  let lastSection = '';
-  NAV_ITEMS.filter(n => allowed.has(n.page)).forEach(n => {
-    if(n.section !== lastSection) {
-      html += `<div class="sidebar-section-label">${n.section}</div><nav class="sidebar-nav">`;
-      lastSection = n.section;
+  const allowed = new Set((ROLE_CONFIG[user.role]||{}).nav||[]);
+  const c = document.getElementById('sidebarNavContainer');
+  if (!c) return;
+  let html='', sec='';
+  NAV_ITEMS.filter(n=>allowed.has(n.page)).forEach(n=>{
+    if (n.section!==sec) {
+      if (sec) html+='</nav>';
+      html+=`<div class="sidebar-section-label">${n.section}</div><nav class="sidebar-nav">`;
+      sec=n.section;
     }
-    const badge = n.badge === 'LIVE'
-      ? `<span class="nav-live" aria-label="Live feature">LIVE</span>`
-      : n.badge === 'pendingCount'
-        ? `<span class="nav-count" id="pendingBadge" aria-live="polite"></span>`
-        : n.count
-          ? `<span class="nav-count" id="${n.count}" aria-live="polite">—</span>`
-          : '';
-    html += `<a class="nav-item" data-page="${n.page}" onclick="navTo('${n.page}')"
-               role="button" tabindex="0" aria-label="${n.label}">
-              <span class="nav-icon" aria-hidden="true">${n.icon}</span>
-              <span>${n.label}</span>${badge}
-            </a>`;
-    if(lastSection && NAV_ITEMS.filter(x=>x.section===n.section && allowed.has(x.page)).slice(-1)[0].page === n.page) {
-      html += '</nav>';
-    }
+    const badge = n.badge==='LIVE' ? `<span class="nav-badge">LIVE</span>`
+      : n.pendingBadge ? `<span class="nav-count" id="pendingBadge"></span>`
+      : n.count ? `<span class="nav-count" id="${n.count}">—</span>` : '';
+    html+=`<a class="nav-item" data-page="${n.page}" onclick="navTo('${n.page}')" role="button" tabindex="0">
+      <span class="nav-icon">${n.icon}</span><span class="nav-label">${n.label}</span>${badge}</a>`;
   });
-  sidebarNav.innerHTML = html;
+  if (sec) html+='</nav>';
+  c.innerHTML = html;
 
-  // Build bottom nav — only show pages this role can access
-  const bottomNav = document.getElementById('bottomNavInner');
-  if(bottomNav) {
-    bottomNav.innerHTML = BOTTOM_NAV_ITEMS
-      .filter(n => allowed.has(n.page))
-      .map(n => `
-        <button class="bottom-nav-item" data-page="${n.page}" onclick="navTo('${n.page}')"
-                aria-label="${n.label}">
-          <span class="bottom-nav-icon" aria-hidden="true">${n.icon}</span>
-          <span>${n.label}</span>
-        </button>`).join('');
+  const bn = document.getElementById('bottomNavInner');
+  if (bn) {
+    bn.innerHTML = (BOTTOM_NAV[user.role]||[]).map(([p,i,l])=>
+      `<button class="bottom-nav-item" data-page="${p}" onclick="navTo('${p}')" aria-label="${l}">
+        <span class="bottom-nav-icon">${i}</span><span>${l}</span></button>`).join('');
   }
 }
 
-// ── SHOW APP SHELL ────────────────────────────────────────────
+function _populateUser(user) {
+  const name = user.full_name || user.username || '?';
+  const ini  = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  const role = user.role.charAt(0).toUpperCase()+user.role.slice(1);
+  // sidebar
+  const els = {userAvatar:ini, userName:name, userRole:role,
+    topbarAvatar:ini, topbarUserName:name, topbarUserRole:role};
+  Object.entries(els).forEach(([id,val])=>{ const el=document.getElementById(id); if(el)el.textContent=val; });
+}
+
 function showAppShell(user) {
   _currentUser = user;
-
-  // Kiosk gets a fullscreen face-scan-only experience — no shell chrome
-  if(user.role === 'kiosk') {
-    document.getElementById('loginScreen').style.display  = 'none';
-    document.getElementById('app-shell').style.display    = 'grid';
-    document.getElementById('sidebar').style.display      = 'none';
-    const mobileTopbar = document.getElementById('mobileTopbar');
-    if(mobileTopbar) mobileTopbar.style.display = 'none';
-    const bottomNav = document.getElementById('bottomNav');
-    if(bottomNav) bottomNav.style.display = 'none';
-    document.getElementById('sidebarNavContainer').innerHTML = '';
-    document.getElementById('userName').textContent   = 'Kiosk';
-    document.getElementById('userRole').textContent   = 'Kiosk';
-    document.getElementById('userAvatar').textContent = 'K';
-    return;
-  }
-
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app-shell').style.display   = 'grid';
 
-  const displayName = user.full_name || user.username;
-  document.getElementById('userName').textContent   = displayName;
-  document.getElementById('userRole').textContent   =
-    user.role.charAt(0).toUpperCase() + user.role.slice(1);
-  document.getElementById('userAvatar').textContent =
-    displayName.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
-
+  if (user.role === 'kiosk') {
+    ['sidebar','desktopTopbar','mobileTopbar','bottomNav']
+      .forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });
+    document.getElementById('sidebarNavContainer').innerHTML = '';
+    return;
+  }
+  _populateUser(user);
   _buildNav(user);
-
-  // Refresh pending badge for admins
-  if(user.role === 'admin') _refreshPendingBadge();
+  if (user.role==='admin') _refreshPendingBadge();
 }
 
 function _refreshPendingBadge() {
-  API.users.pendingCount().then(r => {
-    const el = document.getElementById('pendingBadge');
-    if(el) el.textContent = r.count > 0 ? r.count : '';
+  API.users.pendingCount().then(r=>{
+    const el=document.getElementById('pendingBadge');
+    if(el) el.textContent = r.count>0 ? r.count : '';
   }).catch(()=>{});
 }
 
-// ── SHOW LOGIN SCREEN ─────────────────────────────────────────
 function showLoginScreen() {
   _currentUser = null;
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('app-shell').style.display   = 'none';
-  const err = document.getElementById('loginError');
-  if(err) err.style.display = 'none';
-  const pw = document.getElementById('loginPassword');
-  if(pw) pw.value = '';
-  // Focus username after a short delay so animation completes
-  setTimeout(() => document.getElementById('loginUsername')?.focus(), 120);
+  const err=document.getElementById('loginError'); if(err){err.style.display='none';err.textContent='';}
+  const pw=document.getElementById('loginPassword'); if(pw) pw.value='';
+  setTimeout(()=>document.getElementById('loginUsername')?.focus(), 80);
 }
 
-// ── LOGIN HANDLER ─────────────────────────────────────────────
 async function handleLogin(event) {
   event.preventDefault();
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
   const errBox   = document.getElementById('loginError');
   const btn      = document.getElementById('loginSubmitBtn');
-
-  errBox.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
+  errBox.style.display='none';
+  btn.disabled=true; btn.textContent='Signing in…';
   try {
-    const result = await API.auth.login(username, password);
-    showAppShell(result);
-    if(typeof init === 'function') init(result);
+    const r = await API.auth.login(username, password);
+    showAppShell(r);
+    if (typeof init==='function') init(r);
   } catch(e) {
-    errBox.textContent  = e.message || 'Invalid credentials';
-    errBox.style.display = 'block';
-    errBox.setAttribute('role', 'alert');
-    document.getElementById('loginPassword').value = '';
+    errBox.textContent = e.message||'Incorrect username or password. Please try again.';
+    errBox.style.display='flex';
+    document.getElementById('loginPassword').value='';
     document.getElementById('loginPassword').focus();
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-  }
+  } finally { btn.disabled=false; btn.textContent='Sign In'; }
   return false;
 }
 
-// ── LOGOUT ────────────────────────────────────────────────────
 async function handleLogout() {
-  try { await API.auth.logout(); } catch(e) { /* clear client state regardless */ }
+  try { await API.auth.logout(); } catch(e) {}
   showLoginScreen();
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
-function togglePw() {
-  const f = document.getElementById('loginPassword');
-  f.type = f.type === 'password' ? 'text' : 'password';
-}
-
 function toggleSidebar(open) {
-  const sidebar  = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  if(!sidebar) return;
-  sidebar.classList.toggle('sidebar-open', open);
-  if(backdrop) backdrop.classList.toggle('sidebar-backdrop-visible', open);
-  const hbtn = document.getElementById('hamburgerBtn');
-  if(hbtn) hbtn.setAttribute('aria-expanded', String(!!open));
+  const s=document.getElementById('sidebar'), b=document.getElementById('sidebarBackdrop');
+  if(!s) return;
+  s.classList.toggle('sidebar-open',open);
+  if(b) b.classList.toggle('sidebar-backdrop-visible',open);
+  const h=document.getElementById('hamburgerBtn'); if(h) h.setAttribute('aria-expanded',String(!!open));
 }
 
-// ── ACCOUNT MODAL ─────────────────────────────────────────────
-function openAccountMenu(event) {
-  if(event) event.stopPropagation();
-  const user = _currentUser || {};
-  openModal(`
-    <div class="modal-header">
-      <span class="modal-title">My Account</span>
-      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
-    </div>
-    <div class="modal-body" style="padding:16px 24px">
-      <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:16px">
-        <div style="font-family:var(--font-serif);font-size:18px">${user.full_name || user.username}</div>
-        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px">
-          @${user.username} · <span style="color:var(--citron)">${(user.role||'').toUpperCase()}</span>
-        </div>
-      </div>
-      ${hasRole('employee') ? `
-        <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;margin-bottom:8px" onclick="closeModal();navTo('self')">
-          ◈ My Dashboard
-        </button>` : ''}
-      <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;margin-bottom:8px" onclick="openChangePasswordForm()">
-        🔑 Change Password
-      </button>
-      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="handleLogout()">
-        ↪ Sign Out
-      </button>
-    </div>`);
+function togglePw() {
+  const f=document.getElementById('loginPassword');
+  f.type = f.type==='password'?'text':'password';
 }
 
 function openChangePasswordForm() {
-  openModal(`
-    <div class="modal-header">
-      <span class="modal-title">Change Password</span>
-      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
-    </div>
-    <form class="modal-body" style="padding:20px 24px" onsubmit="return submitChangePassword(event)">
-      <div id="cpError" class="login-error" style="display:none" role="alert"></div>
-      <div class="form-group">
-        <label class="form-label" for="cpCurrent">Current password</label>
-        <input class="form-control" id="cpCurrent" type="password" autocomplete="current-password" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="cpNew">New password <span style="color:var(--text-3)">(min 6 chars)</span></label>
-        <input class="form-control" id="cpNew" type="password" autocomplete="new-password" minlength="6" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="cpConfirm">Confirm new password</label>
-        <input class="form-control" id="cpConfirm" type="password" autocomplete="new-password" minlength="6" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px">Update Password</button>
+  openModal(`<div class="modal-header"><span class="modal-title">Change Password</span>
+    <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <form class="modal-body" onsubmit="return submitChangePassword(event)">
+      <div id="cpError" class="field-error" style="display:none" role="alert"></div>
+      <div class="form-group"><label class="form-label" for="cpCurrent">Current password</label>
+        <input class="form-control" id="cpCurrent" type="password" autocomplete="current-password" required></div>
+      <div class="form-group"><label class="form-label" for="cpNew">New password (min 6 characters)</label>
+        <input class="form-control" id="cpNew" type="password" minlength="6" required></div>
+      <div class="form-group"><label class="form-label" for="cpConfirm">Confirm new password</label>
+        <input class="form-control" id="cpConfirm" type="password" required></div>
+      <div class="modal-footer" style="padding:12px 0 0;border:none">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Password</button></div>
     </form>`);
 }
 
-async function submitChangePassword(event) {
-  event.preventDefault();
-  const current = document.getElementById('cpCurrent').value;
-  const next    = document.getElementById('cpNew').value;
-  const confirm = document.getElementById('cpConfirm').value;
-  const err     = document.getElementById('cpError');
-  err.style.display = 'none';
-  if(next !== confirm) { err.textContent='Passwords do not match.'; err.style.display='block'; return false; }
-  try {
-    await API.auth.changePassword(current, next);
-    closeModal();
-    toast('Password updated successfully', 'success');
-  } catch(e) {
-    err.textContent = e.message || 'Could not update password.';
-    err.style.display = 'block';
-  }
+async function submitChangePassword(e) {
+  e.preventDefault();
+  const cur=document.getElementById('cpCurrent').value, nxt=document.getElementById('cpNew').value,
+        con=document.getElementById('cpConfirm').value, err=document.getElementById('cpError');
+  err.style.display='none';
+  if(nxt!==con){err.textContent='Passwords do not match';err.style.display='flex';return false;}
+  try { await API.auth.changePassword(cur,nxt); closeModal(); toast('Password updated','success'); }
+  catch(ex){err.textContent=ex.message||'Could not update password';err.style.display='flex';}
   return false;
 }
 
-// ── CREATE ACCOUNT (public register flow) ─────────────────────
 function openCreateAccountModal() {
-  openModal(`
-    <div class="modal-header">
-      <span class="modal-title">Request Account</span>
-      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
-    </div>
-    <form class="modal-body" style="padding:20px 24px" onsubmit="return submitRegister(event)">
+  openModal(`<div class="modal-header"><span class="modal-title">Request Account Access</span>
+    <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
       <p style="font-size:13px;color:var(--text-2);margin-bottom:18px;line-height:1.6">
-        Submit your details and an administrator will activate your account.
-        If no admin account exists yet, yours will be created as admin.
-      </p>
-      <div id="regError" class="login-error" style="display:none" role="alert"></div>
-      <div id="regSuccess" style="display:none;padding:12px;background:rgba(0,255,179,0.06);border:1px solid rgba(0,255,179,0.2);border-radius:8px;color:var(--mint);font-size:13px;margin-bottom:12px"></div>
-      <div class="form-group">
-        <label class="form-label" for="regFullName">Full name</label>
-        <input class="form-control" id="regFullName" placeholder="e.g. Brian Omondi" required autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="regUsername">Username</label>
-        <input class="form-control" id="regUsername" placeholder="e.g. brian_o" required autocomplete="username">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="regPassword">Password <span style="color:var(--text-3)">(min 6 chars)</span></label>
-        <input class="form-control" id="regPassword" type="password" minlength="6" required autocomplete="new-password">
-      </div>
-      <button type="submit" id="regSubmitBtn" class="btn btn-primary" style="width:100%;margin-top:8px">Submit Request</button>
-    </form>`);
+        Enter your details and an administrator will activate your account.
+        If no admin account exists yet, yours will become the first administrator.</p>
+      <div id="regError"   class="field-error"  style="display:none"></div>
+      <div id="regSuccess" class="alert alert-success" style="display:none"></div>
+      <div class="form-group"><label class="form-label" for="regFullName">Full Name</label>
+        <input class="form-control" id="regFullName" placeholder="e.g. Alice Nakato" required autocomplete="name"></div>
+      <div class="form-group"><label class="form-label" for="regUsername">Username</label>
+        <input class="form-control" id="regUsername" placeholder="e.g. alice_n" required autocomplete="username"></div>
+      <div class="form-group"><label class="form-label" for="regPassword">Password (min 6 characters)</label>
+        <input class="form-control" id="regPassword" type="password" minlength="6" required autocomplete="new-password"></div>
+      <div class="modal-footer" style="padding:16px 0 0;border:none">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="regSubmitBtn" onclick="submitRegister()">Submit Request</button></div>
+    </div>`);
 }
 
-async function submitRegister(event) {
-  event.preventDefault();
-  const btn      = document.getElementById('regSubmitBtn');
-  const errEl    = document.getElementById('regError');
-  const successEl= document.getElementById('regSuccess');
-  errEl.style.display = 'none';
-  btn.disabled = true; btn.textContent = 'Submitting…';
-
+async function submitRegister() {
+  const btn=document.getElementById('regSubmitBtn'), err=document.getElementById('regError'),
+        ok=document.getElementById('regSuccess');
+  err.style.display='none'; btn.disabled=true; btn.textContent='Submitting…';
   try {
-    const res = await API.users.register({
-      full_name: document.getElementById('regFullName').value.trim(),
-      username:  document.getElementById('regUsername').value.trim(),
-      password:  document.getElementById('regPassword').value,
+    const r = await API.users.register({
+      full_name:document.getElementById('regFullName').value.trim(),
+      username: document.getElementById('regUsername').value.trim(),
+      password: document.getElementById('regPassword').value,
     });
-    successEl.textContent = res.message;
-    successEl.style.display = 'block';
-    btn.style.display = 'none';
-    // If auto_login, close modal and attempt login
-    if(res.auto_login) {
-      setTimeout(() => { closeModal(); }, 1800);
-    }
-  } catch(e) {
-    errEl.textContent = e.message || 'Registration failed';
-    errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Submit Request';
-  }
-  return false;
+    ok.textContent=r.message; ok.style.display='flex'; btn.style.display='none';
+  } catch(e) { err.textContent=e.message||'Registration failed'; err.style.display='flex'; btn.disabled=false; btn.textContent='Submit Request'; }
 }
 
-// ── BOOT ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const me = await API.auth.me();
-    if(me.authenticated) {
-      showAppShell(me);
-      if(typeof init === 'function') init(me);
-      return;
-    }
-  } catch(e) { /* 401 is expected for a logged-out visitor */ }
+document.addEventListener('DOMContentLoaded', async ()=>{
+  try { const me=await API.auth.me(); if(me.authenticated){showAppShell(me);if(typeof init==='function')init(me);return;} } catch(e){}
   showLoginScreen();
 });
